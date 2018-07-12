@@ -1,0 +1,22 @@
+{
+  "name": "scroller",
+  "version": "1.0.0",
+  "description": "스크롤 이벤트 편하게 하려고 만들음.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uchangFD/Scroller.git"
+  },
+  "keywords": [
+    "scroller"
+  ],
+  "author": "uchang heo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/uchangFD/Scroller/issues"
+  },
+  "homepage": "https://github.com/uchangFD/Scroller#readme"
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script
+  src="https://code.jquery.com/jquery-2.2.4.js"
+  integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI="
+  crossorigin="anonymous"></script>
+  <title>Scroller Test</title>
+  <style>
+    body{
+      border: 5px solid #000;
+    }
+    .section {
+      height: 100vh;
+      border: 5px solid lightcoral;
+    }
+    #section1 {
+      background-color: lightblue;
+      padding-top: 100px;
+      margin-top: 200px;
+    }
+    #section2 {
+      background-color: lightcyan;
+      padding-top: 150px;
+      padding-bottom: 100px;
+      margin-top: 150px;
+    }
+    #section3 {
+      margin-top: 200px;
+      background-color: lightgreen;
+    }
+    #section4 {
+      background-color: lightpink;
+    }
+    #section5 {
+      background-color: lightgoldenrodyellow;
+    }
+    .relative {
+      position: relative;
+    }
+    .absolute {
+      position: relative;
+    }
+    .inner {
+      background-color: lightseagreen;
+      height: 200px;
+      margin-top: 200px;
+    }
+    .nav {
+      position: fixed;
+      z-index: 99;
+      padding: 20px 30px;
+      top: 20px;
+      left: 50%;
+      font-size: 30px;
+      border: 2px solid linen;
+      transform: translateX(-50%);
+      background-color: #fff;
+    }
+    .blue {
+      background-color: lightblue;
+    }
+    .yellow {
+      background-color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <div class="nav">안지나감.</div>
+  <div id="section1" class="section"></div>
+  <div id="section2" class="section">
+    <div class="inner">
+    </div>
+  </div>
+  <div id="section3" class="section">
+    <div class="inner">
+    </div>
+    <div class="inner">
+    </div>
+    <div class="inner">
+    </div>
+  </div>
+  <div id="section4" class="section">
+    <div class="inner relative yellow">
+        <div class="inner absolute blue" >
+        </div>
+    </div>
+  </div>
+  <div id="section5" class="section">
+      <div class="inner">
+      </div>
+      <div class="inner">
+      </div>
+      <div class="inner">
+      </div>
+  </div>
+  <script src="./js/scroller.js"></script>
+  <script>
+    window.onload = function() {
+      var scroller = new Scroller();
+      var navEl = document.querySelector('.nav');
+
+      console.log(navEl);
+      scroller.add({
+        el: '#section1',
+        start: function() {
+          navEl.innerText = 'section1';
+        },
+        end: function() {
+          navEl.innerText = '안지나감.';
+        }
+      }).add({
+        el: '#section2',
+        start: function() {
+          navEl.innerText = 'section2';
+        },
+        end: function() {
+          navEl.innerText = '안지나감.';
+        }
+      }).add({
+        el: '#section3',
+        start: function() {
+          navEl.innerText = 'section3';
+        },
+        end: function() {
+          navEl.innerText = '안지나감.';
+        }
+      }).add({
+        el: '#section4 .inner:first-child > .inner',
+        parent: 'relative',
+        start: function() {
+          navEl.innerText = '#section4 .inner:first-child > .inner';
+        },
+        end: function() {
+          navEl.innerText = '안지나감.';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
