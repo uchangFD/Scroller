@@ -1,4 +1,4 @@
-# ScrollerTrigger
+# ScrollEventTrigger
 > 스크롤 이벤트를 편하게 사용하려고 만듦.
 
 ## 사용방법
