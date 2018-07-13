@@ -122,8 +122,6 @@
         return;
       }
 
-      // 각 요소에 대한 검증작업이 필요함.
-
       var newInfo = {};
       var el = document.querySelector(sectionInfo.el);
       var parent = utils.getType(sectionInfo.parent) === 'string' && sectionInfo.parent === 'relative' ? 'relative' : 'absolute';
