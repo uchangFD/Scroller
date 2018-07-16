@@ -2,14 +2,14 @@
 ;(function() {  
 
   var init = function(scroller) {
-    bindEvts(scroller ,
+    bindEvts(
       {
         event: 'scroll',
-        callback: scrollEvtCallback
+        callback: scrollEvtCallback.bind(null, scroller.sections)
       },
       {
         event: 'resize',
-        callback: resizeEvtCallback
+        callback: resizeEvtCallback.bind(null, scroller.sections)
       }
     );
   };
@@ -175,9 +175,7 @@
   };
 
   var bindEvts = function() {
-    var args = [].slice.call(arguments)
-    var my = args.shift()
-        
+    var args = [].slice.call(arguments)        
     if(args.length === 0) {
       return;
     }
@@ -188,9 +186,9 @@
       var target = eventInfo.target || window;
 
       if(target.addEventListener) {
-        target.addEventListener(evt, callback.bind(null, my.sections));
+        target.addEventListener(evt, callback);
       } else {
-        target.attachEvent('on' + evt, callback.bind(null, my.sections));
+        target.attachEvent('on' + evt, callback);
       }
       
     });
