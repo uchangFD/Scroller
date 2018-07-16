@@ -1,36 +1,39 @@
 'use strict';
 ;(function() {  
 
-  var init = function(scroller) {
+  var Scroller = function(opts) {
+    this.sections = [];
+
+    this._scrollEvtCallback = this._scrollEvtCallback.bind(this);
+    this._resizeEvtCallback = this._resizeEvtCallback.bind(this);
+    this._activeScrollEvt = this._activeScrollEvt.bind(this);
+    this._activeResizeEvt = this._activeResizeEvt.bind(this);
+
+    this._init();
+  };
+
+  Scroller.prototype._init = function () {
     bindEvts(
       {
         event: 'scroll',
-        callback: scrollEvtCallback.bind(null, scroller.sections)
+        callback: this._scrollEvtCallback
       },
       {
         event: 'resize',
-        callback: resizeEvtCallback.bind(null, scroller.sections)
+        callback: this._resizeEvtCallback
       }
     );
-  };
-
-  var Scroller = function(opts) {
-
-    this.sections = [];
-
-    init(this);
-  };
+  }
 
   Scroller.prototype.add = function(obj) {
     this.sections.push(new Section(obj));
     return this;
   };
 
+  Scroller.prototype._activeScrollEvt = function() {
+    var scrollY = window.pageYOffset || document.documentElement.scrollY
 
-  // 6번
-  var activeScrollEvt = function(sections, scrollY) {
-    
-    sections.forEach(function(info) {
+    this.sections.forEach(function(info) {
       
       var top = info.top;
       var bottom = info.bottom;
@@ -45,9 +48,9 @@
     });
   };
 
-  var activeResizeEvt = function(sections) {
+  Scroller.prototype._activeResizeEvt = function() {
     
-    sections.forEach(function(sectionInfo) {
+    this.sections.forEach(function(sectionInfo) {
       
       var offsetInfo = sectionInfo.getElementOffsetTopBottom();
       
@@ -56,16 +59,13 @@
     });
   };
 
-  var scrollEvtCallback = function(sections) {
-    
-    sections.length > 0 && debounce(activeScrollEvt.bind(null, sections, window.pageYOffset || document.documentElement.scrollY));
+  Scroller.prototype._scrollEvtCallback = function() {
+    this.sections.length > 0 && debounce(this._activeScrollEvt);
   };
 
-  var resizeEvtCallback = function(sections) {
-
-    if(!sections.length > 0) { return; }
-  
-    debounce(activeResizeEvt.bind(null, sections));
+  Scroller.prototype._resizeEvtCallback = function() {
+    if(!this.sections.length > 0) { return; }
+    debounce(this._activeResizeEvt);
   };
 
     // 4번
