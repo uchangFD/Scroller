@@ -4,11 +4,8 @@
   var Scroller = (function(modules) {
   
 
-    var init = function() {
-
-      var Scroller = this;
-
-      utils.bindEvts.call(Scroller,
+    var init = function(scroller) {
+      utils.bindEvts(scroller ,
         {
           event: 'scroll',
           callback: modules.scrollEvtCallback
@@ -27,7 +24,7 @@
         sectionInfos: []
       };
 
-      init.call(this);
+      init(this);
     };
 
     Scroller.prototype.add = function(obj) {
@@ -205,14 +202,14 @@
   };
 
   var bindEvts = function() {
+    var args = [].slice.call(arguments)
+    var my = args.shift()
         
-    if(!arguments.length > 0) {
+    if(args.length === 0) {
       return;
     }
     
-    var my = this;
-
-    Array.prototype.forEach.call(arguments, function(eventInfo) {
+    args.forEach(function(eventInfo) {
       var evt = eventInfo.event;
       var callback = eventInfo.callback;
       var target = eventInfo.target || window;
