@@ -54,15 +54,12 @@
   var Section = function(sectionInfo) {
     if(!sectionInfo) throw new TypeError('sectionInfo가 필요합니다!')
 
-    var el = document.querySelector(sectionInfo.el);
-    var parent = sectionInfo.parent === 'relative' ? 'relative' : 'absolute';
-  
-    this.el = el;
+    var el = this.el = document.querySelector(sectionInfo.el);
+    this._parentPosition = window.getComputedStyle(el.offsetParent).position;
     this.addTop = sectionInfo.addTop || 0;
     this.addBottom = sectionInfo.addBottom || 0;
     this.start = sectionInfo.start || noop;
     this.end = sectionInfo.end || noop;
-    this.parent = parent;
     this.isActive = false;
 
     this.updateOffset();
@@ -97,7 +94,7 @@
   };
 
   Section.prototype.updateOffset = function () {
-    var pos = this.parent === 'absolute'? this._getAbsolutePos() :  this._getRelativePos();
+    var pos = this._parentPosition === 'absolute'? this._getAbsolutePos() :  this._getRelativePos();
     this.top = pos.top + this.addTop
     this.bottom = pos.bottom + this.addBottom
   }
@@ -113,7 +110,8 @@
   };
 
   function bindEvts() {
-    var args = [].slice.call(arguments)        
+    var args = [].slice.call(arguments)     
+       
     if(args.length === 0) {
       return;
     }
@@ -122,12 +120,8 @@
       var evt = eventInfo.event;
       var callback = eventInfo.callback;
       var target = eventInfo.target || window;
-
-      if(target.addEventListener) {
-        target.addEventListener(evt, callback);
-      } else {
-        target.attachEvent('on' + evt, callback);
-      }
+      
+      target.addEventListener(evt, callback);
     });
   };
 
