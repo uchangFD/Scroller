@@ -28,47 +28,13 @@
     };
 
     Scroller.prototype.add = function(obj) {
-      this.states.sectionInfos.push(modules.getSectionState(obj));
+      this.states.sectionInfos.push(new modules.Section(obj));
       return this;
     };
 
   return Scroller;
 
   })((function(utils) {
-
-    var getAbsolutePos = function(sectionInfo) {
-      
-      var domRect = sectionInfo.el.getBoundingClientRect();
-      
-      var top = domRect.top + window.pageYOffset - document.documentElement.clientTop;
-      var bottom = top + sectionInfo.el.offsetHeight;
-
-      return {
-        top: top + sectionInfo.addTop,
-        bottom: bottom + sectionInfo.addBottom
-      };
-    };
-
-    var getRelativePos = function(sectionInfo) {
-      var top = sectionInfo.el.offsetTop;
-      var bottom = top + sectionInfo.el.offsetHeight;
-
-      return {
-        top: top + sectionInfo.addTop,
-        bottom: bottom + sectionInfo.addBottom
-      }
-    };
-
-    var getElementOffsetTopBottom = function(sectionInfo) {
-
-      if(sectionInfo.parent === 'absolute') {
-        console.log('absolute');
-        return getAbsolutePos({el: sectionInfo.el, addTop: sectionInfo.addTop || 0, addBottom: sectionInfo.addBottom || 0});
-      } else {
-        console.log('relative');
-        return getRelativePos({el: sectionInfo.el, addTop: sectionInfo.addTop || 0, addBottom: sectionInfo.addBottom || 0});
-      }
-    };
 
     // 6번
     var activeScrollEvt = function(sectionInfos, scrollY) {
@@ -92,7 +58,7 @@
       
       sectionInfos.forEach(function(sectionInfo) {
         
-        var offsetInfo = getElementOffsetTopBottom(sectionInfo);
+        var offsetInfo = sectionInfo.getElementOffsetTopBottom();
         
         sectionInfo.top = offsetInfo.top;
         sectionInfo.bottom = offsetInfo.bottom;
@@ -112,38 +78,63 @@
     };
 
     // 4번
-    var getSectionState = function(sectionInfo) {
+    var Section = function(sectionInfo) {
         
-      if(!sectionInfo) {
-        return;
-      }
+      if(!sectionInfo) throw new TypeError('sectionInfo가 필요합니다!')
 
-      var newInfo = {};
       var el = document.querySelector(sectionInfo.el);
       var parent = utils.getType(sectionInfo.parent) === 'string' && sectionInfo.parent === 'relative' ? 'relative' : 'absolute';
-      var offsetInfo;
+    
+      this.el = el;
+      this.addTop = sectionInfo.addTop || 0;
+      this.addBottom = sectionInfo.addBottom || 0;
+      this.start = sectionInfo.start ? sectionInfo.start : function() {};
+      this.end = sectionInfo.end ? sectionInfo.end : function() {};
+      this.parent = parent;
+      this.isActive = false;
 
-      newInfo['el'] = el;
-      newInfo['addTop'] = sectionInfo.addTop || 0;
-      newInfo['addBottom'] = sectionInfo.addBottom || 0;
-      newInfo['start'] = sectionInfo.start ? sectionInfo.start : function() {};
-      newInfo['end'] = sectionInfo.end ? sectionInfo.end : function() {};
-      newInfo['parent'] = parent;
-      newInfo['isActive'] = false;
-
-      offsetInfo = getElementOffsetTopBottom(newInfo);
-      
-      newInfo['top'] = offsetInfo.top;
-      newInfo['bottom'] = offsetInfo.bottom;
-
-      return newInfo;
+      var offsetInfo = this.getElementOffsetTopBottom();
+      this.top = offsetInfo.top;
+      this.bottom = offsetInfo.bottom;
     };
 
+    Section.prototype.getAbsolutePos = function() {
+      
+      var domRect = this.el.getBoundingClientRect();
+      
+      var top = domRect.top + window.pageYOffset - document.documentElement.clientTop;
+      var bottom = top + this.el.offsetHeight;
+
+      return {
+        top: top + this.addTop,
+        bottom: bottom + this.addBottom
+      };
+    };
+
+    Section.prototype.getRelativePos = function() {
+      var top = this.el.offsetTop;
+      var bottom = top + this.el.offsetHeight;
+
+      return {
+        top: top + this.addTop,
+        bottom: bottom + this.addBottom
+      }
+    };
+
+    Section.prototype.getElementOffsetTopBottom = function () {
+      if(this.parent === 'absolute') {
+        console.log('absolute');
+        return this.getAbsolutePos();
+      } else {
+        console.log('relative');
+        return this.getRelativePos();
+      }
+    }
+
     return {
-      getElementOffsetTopBottom: getElementOffsetTopBottom,
       scrollEvtCallback: scrollEvtCallback,
       resizeEvtCallback: resizeEvtCallback,
-      getSectionState: getSectionState
+      Section: Section
     };
   })(utils));
 
