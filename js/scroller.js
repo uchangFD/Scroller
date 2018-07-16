@@ -55,7 +55,7 @@
     if(!sectionInfo) throw new TypeError('sectionInfo가 필요합니다!')
 
     var el = document.querySelector(sectionInfo.el);
-    var parent = getType(sectionInfo.parent) === 'string' && sectionInfo.parent === 'relative' ? 'relative' : 'absolute';
+    var parent = sectionInfo.parent === 'relative' ? 'relative' : 'absolute';
   
     this.el = el;
     this.addTop = sectionInfo.addTop || 0;
@@ -102,53 +102,9 @@
     this.bottom = pos.bottom + this.addBottom
   }
 
-  var noop = function () {  }
+  function noop () {  }
 
-  var getType = function(data) {
-    
-    return Object.prototype.toString.call(data).slice(8, -1).toLowerCase();
-  };
-
-  var extend = function(newObj, oldObj) {
-    
-    var checkArr = function(arr) {
-
-      var emptyArr = [];
-
-      arr.forEach(function(data) {
-        var dataType = getType(data);
-
-        if(dataType === 'object') {
-          emptyArr.push(extend({}, data));
-        } else if(dataType === 'array') {
-          emptyArr.push(checkArr(data));
-        } else {
-          emptyArr.push(data);
-        }
-      });
-
-      return emptyArr;
-    };
-
-    for(var prop in oldObj) {
-      if(oldObj.hasOwnProperty(prop)) {
-        var _data = oldObj[prop];
-        var type = getType(_data);
-
-        if(type === 'object') {
-          newObj[prop] = extend({}, _data);
-        } else if(type === 'array') {
-          newObj[prop] = checkArr(_data);
-        } else {
-          newObj[prop] = _data;
-        }
-      }
-    }
-
-    return newObj;
-  };
-
-  var nextFrame = function(callback) {
+  function nextFrame(callback) {
     if(window.requestAnimationFrame) {
       window.requestAnimationFrame(callback);
     } else {
@@ -156,7 +112,7 @@
     }
   };
 
-  var bindEvts = function() {
+  function bindEvts() {
     var args = [].slice.call(arguments)        
     if(args.length === 0) {
       return;
@@ -172,7 +128,6 @@
       } else {
         target.attachEvent('on' + evt, callback);
       }
-      
     });
   };
 
