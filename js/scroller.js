@@ -16,24 +16,21 @@
 
   var Scroller = function(opts) {
 
-    this.states = {
-      isActive: false,
-      sectionInfos: []
-    };
+    this.sections = [];
 
     init(this);
   };
 
   Scroller.prototype.add = function(obj) {
-    this.states.sectionInfos.push(new Section(obj));
+    this.sections.push(new Section(obj));
     return this;
   };
 
 
   // 6번
-  var activeScrollEvt = function(sectionInfos, scrollY) {
+  var activeScrollEvt = function(sections, scrollY) {
     
-    sectionInfos.forEach(function(info) {
+    sections.forEach(function(info) {
       
       var top = info.top;
       var bottom = info.bottom;
@@ -48,9 +45,9 @@
     });
   };
 
-  var activeResizeEvt = function(sectionInfos) {
+  var activeResizeEvt = function(sections) {
     
-    sectionInfos.forEach(function(sectionInfo) {
+    sections.forEach(function(sectionInfo) {
       
       var offsetInfo = sectionInfo.getElementOffsetTopBottom();
       
@@ -59,16 +56,16 @@
     });
   };
 
-  var scrollEvtCallback = function(sectionInfos) {
+  var scrollEvtCallback = function(sections) {
     
-    sectionInfos.length > 0 && debounce(activeScrollEvt.bind(null, sectionInfos, window.pageYOffset || document.documentElement.scrollY));
+    sections.length > 0 && debounce(activeScrollEvt.bind(null, sections, window.pageYOffset || document.documentElement.scrollY));
   };
 
-  var resizeEvtCallback = function(sectionInfos) {
+  var resizeEvtCallback = function(sections) {
 
-    if(!sectionInfos.length > 0) { return; }
+    if(!sections.length > 0) { return; }
   
-    debounce(activeResizeEvt.bind(null, sectionInfos));
+    debounce(activeResizeEvt.bind(null, sections));
   };
 
     // 4번
@@ -191,9 +188,9 @@
       var target = eventInfo.target || window;
 
       if(target.addEventListener) {
-        target.addEventListener(evt, callback.bind(null, my.states.sectionInfos));
+        target.addEventListener(evt, callback.bind(null, my.sections));
       } else {
-        target.attachEvent('on' + evt, callback.bind(null, my.states.sectionInfos));
+        target.attachEvent('on' + evt, callback.bind(null, my.sections));
       }
       
     });
