@@ -6,8 +6,8 @@
 
     this._scrollEvtCallback = this._scrollEvtCallback.bind(this);
     this._resizeEvtCallback = this._resizeEvtCallback.bind(this);
-    this._activeScrollEvt = this._activeScrollEvt.bind(this);
-    this._activeResizeEvt = this._activeResizeEvt.bind(this);
+    this._onScroll = this._onScroll.bind(this);
+    this._onResize = this._onResize.bind(this);
 
     this._init();
   };
@@ -30,25 +30,24 @@
     return this;
   };
 
-  Scroller.prototype._activeScrollEvt = function() {
+  Scroller.prototype._onScroll = function() {
     this.sections.forEach(function(section) {
       section.onScroll()
     });
   };
 
-  Scroller.prototype._activeResizeEvt = function() {
+  Scroller.prototype._onResize = function() {
     this.sections.forEach(function(section) {      
       section.updateOffset();
     });
   };
 
   Scroller.prototype._scrollEvtCallback = function() {
-    this.sections.length > 0 && debounce(this._activeScrollEvt);
+    if(this.sections.length > 0) nextFrame(this._onScroll);
   };
 
   Scroller.prototype._resizeEvtCallback = function() {
-    if(!this.sections.length > 0) { return; }
-    debounce(this._activeResizeEvt);
+    if(!this.sections.length > 0) nextFrame(this._onResize);
   };
 
     // 4번
@@ -149,7 +148,7 @@
     return newObj;
   };
 
-  var debounce = function(callback) {
+  var nextFrame = function(callback) {
     if(window.requestAnimationFrame) {
       window.requestAnimationFrame(callback);
     } else {
