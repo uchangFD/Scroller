@@ -31,20 +31,8 @@
   };
 
   Scroller.prototype._activeScrollEvt = function() {
-    var scrollY = window.pageYOffset || document.documentElement.scrollY
-
-    this.sections.forEach(function(info) {
-      
-      var top = info.top;
-      var bottom = info.bottom;
-
-      if(scrollY > top && scrollY < bottom) {
-        !info.isActive && info.start();
-        info.isActive = true;
-      } else {
-        info.isActive && info.end();
-        info.isActive = false;
-      }
+    this.sections.forEach(function(section) {
+      section.onScroll()
     });
   };
 
@@ -65,7 +53,6 @@
 
     // 4번
   var Section = function(sectionInfo) {
-      
     if(!sectionInfo) throw new TypeError('sectionInfo가 필요합니다!')
 
     var el = document.querySelector(sectionInfo.el);
@@ -82,8 +69,19 @@
     this.updateOffset();
   };
 
+  Section.prototype.onScroll = function () {
+    var scrollY = window.pageYOffset || document.documentElement.scrollY
+
+    if(scrollY > this.top && scrollY < this.bottom) {
+      !this.isActive && this.start();
+      this.isActive = true;
+    } else {
+      this.isActive && this.end();
+      this.isActive = false;
+    }
+  }
+
   Section.prototype._getAbsolutePos = function() {
-    
     var domRect = this.el.getBoundingClientRect();
     
     var top = domRect.top + window.pageYOffset - document.documentElement.clientTop;
