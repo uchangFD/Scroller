@@ -1,7 +1,7 @@
-'use strict';
 ;(function() {  
+  'use strict';
 
-  var Scroller = function(opts) {
+  var Scroller = function() {
     this.sections = [];
 
     this._scrollEvtCallback = this._scrollEvtCallback.bind(this);
@@ -79,8 +79,8 @@
     this.el = el;
     this.addTop = sectionInfo.addTop || 0;
     this.addBottom = sectionInfo.addBottom || 0;
-    this.start = sectionInfo.start ? sectionInfo.start : function() {};
-    this.end = sectionInfo.end ? sectionInfo.end : function() {};
+    this.start = sectionInfo.start || noop;
+    this.end = sectionInfo.end || noop;
     this.parent = parent;
     this.isActive = false;
 
@@ -121,6 +121,8 @@
       return this.getRelativePos();
     }
   }
+
+  var noop = function () {  }
 
   var getType = function(data) {
     
