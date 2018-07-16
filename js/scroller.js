@@ -1,145 +1,130 @@
 'use strict';
-;(function(utils) {
-  
-  var Scroller = (function(modules) {
-  
+;(function() {  
 
-    var init = function(scroller) {
-      utils.bindEvts(scroller ,
-        {
-          event: 'scroll',
-          callback: modules.scrollEvtCallback
-        },
-        {
-          event: 'resize',
-          callback: modules.resizeEvtCallback
-        }
-      );
+  var init = function(scroller) {
+    bindEvts(scroller ,
+      {
+        event: 'scroll',
+        callback: scrollEvtCallback
+      },
+      {
+        event: 'resize',
+        callback: resizeEvtCallback
+      }
+    );
+  };
+
+  var Scroller = function(opts) {
+
+    this.states = {
+      isActive: false,
+      sectionInfos: []
     };
 
-    var Scroller = function(opts) {
+    init(this);
+  };
 
-      this.states = {
-        isActive: false,
-        sectionInfos: []
-      };
+  Scroller.prototype.add = function(obj) {
+    this.states.sectionInfos.push(new Section(obj));
+    return this;
+  };
 
-      init(this);
-    };
 
-    Scroller.prototype.add = function(obj) {
-      this.states.sectionInfos.push(new modules.Section(obj));
-      return this;
-    };
-
-  return Scroller;
-
-  })((function(utils) {
-
-    // 6번
-    var activeScrollEvt = function(sectionInfos, scrollY) {
-      
-      sectionInfos.forEach(function(info) {
-        
-        var top = info.top;
-        var bottom = info.bottom;
-
-        if(scrollY > top && scrollY < bottom) {
-          !info.isActive && info.start();
-          info.isActive = true;
-        } else {
-          info.isActive && info.end();
-          info.isActive = false;
-        }
-      });
-    };
-
-    var activeResizeEvt = function(sectionInfos) {
-      
-      sectionInfos.forEach(function(sectionInfo) {
-        
-        var offsetInfo = sectionInfo.getElementOffsetTopBottom();
-        
-        sectionInfo.top = offsetInfo.top;
-        sectionInfo.bottom = offsetInfo.bottom;
-      });
-    };
-
-    var scrollEvtCallback = function(sectionInfos) {
-      
-      sectionInfos.length > 0 && utils.debounce(activeScrollEvt.bind(null, sectionInfos, window.pageYOffset || document.documentElement.scrollY));
-    };
-
-    var resizeEvtCallback = function(sectionInfos) {
-
-      if(!sectionInfos.length > 0) { return; }
+  // 6번
+  var activeScrollEvt = function(sectionInfos, scrollY) {
     
-      utils.debounce(activeResizeEvt.bind(null, sectionInfos));
-    };
+    sectionInfos.forEach(function(info) {
+      
+      var top = info.top;
+      var bottom = info.bottom;
+
+      if(scrollY > top && scrollY < bottom) {
+        !info.isActive && info.start();
+        info.isActive = true;
+      } else {
+        info.isActive && info.end();
+        info.isActive = false;
+      }
+    });
+  };
+
+  var activeResizeEvt = function(sectionInfos) {
+    
+    sectionInfos.forEach(function(sectionInfo) {
+      
+      var offsetInfo = sectionInfo.getElementOffsetTopBottom();
+      
+      sectionInfo.top = offsetInfo.top;
+      sectionInfo.bottom = offsetInfo.bottom;
+    });
+  };
+
+  var scrollEvtCallback = function(sectionInfos) {
+    
+    sectionInfos.length > 0 && debounce(activeScrollEvt.bind(null, sectionInfos, window.pageYOffset || document.documentElement.scrollY));
+  };
+
+  var resizeEvtCallback = function(sectionInfos) {
+
+    if(!sectionInfos.length > 0) { return; }
+  
+    debounce(activeResizeEvt.bind(null, sectionInfos));
+  };
 
     // 4번
-    var Section = function(sectionInfo) {
-        
-      if(!sectionInfo) throw new TypeError('sectionInfo가 필요합니다!')
+  var Section = function(sectionInfo) {
+      
+    if(!sectionInfo) throw new TypeError('sectionInfo가 필요합니다!')
 
-      var el = document.querySelector(sectionInfo.el);
-      var parent = utils.getType(sectionInfo.parent) === 'string' && sectionInfo.parent === 'relative' ? 'relative' : 'absolute';
+    var el = document.querySelector(sectionInfo.el);
+    var parent = getType(sectionInfo.parent) === 'string' && sectionInfo.parent === 'relative' ? 'relative' : 'absolute';
+  
+    this.el = el;
+    this.addTop = sectionInfo.addTop || 0;
+    this.addBottom = sectionInfo.addBottom || 0;
+    this.start = sectionInfo.start ? sectionInfo.start : function() {};
+    this.end = sectionInfo.end ? sectionInfo.end : function() {};
+    this.parent = parent;
+    this.isActive = false;
+
+    var offsetInfo = this.getElementOffsetTopBottom();
+    this.top = offsetInfo.top;
+    this.bottom = offsetInfo.bottom;
+  };
+
+  Section.prototype.getAbsolutePos = function() {
     
-      this.el = el;
-      this.addTop = sectionInfo.addTop || 0;
-      this.addBottom = sectionInfo.addBottom || 0;
-      this.start = sectionInfo.start ? sectionInfo.start : function() {};
-      this.end = sectionInfo.end ? sectionInfo.end : function() {};
-      this.parent = parent;
-      this.isActive = false;
-
-      var offsetInfo = this.getElementOffsetTopBottom();
-      this.top = offsetInfo.top;
-      this.bottom = offsetInfo.bottom;
-    };
-
-    Section.prototype.getAbsolutePos = function() {
-      
-      var domRect = this.el.getBoundingClientRect();
-      
-      var top = domRect.top + window.pageYOffset - document.documentElement.clientTop;
-      var bottom = top + this.el.offsetHeight;
-
-      return {
-        top: top + this.addTop,
-        bottom: bottom + this.addBottom
-      };
-    };
-
-    Section.prototype.getRelativePos = function() {
-      var top = this.el.offsetTop;
-      var bottom = top + this.el.offsetHeight;
-
-      return {
-        top: top + this.addTop,
-        bottom: bottom + this.addBottom
-      }
-    };
-
-    Section.prototype.getElementOffsetTopBottom = function () {
-      if(this.parent === 'absolute') {
-        console.log('absolute');
-        return this.getAbsolutePos();
-      } else {
-        console.log('relative');
-        return this.getRelativePos();
-      }
-    }
+    var domRect = this.el.getBoundingClientRect();
+    
+    var top = domRect.top + window.pageYOffset - document.documentElement.clientTop;
+    var bottom = top + this.el.offsetHeight;
 
     return {
-      scrollEvtCallback: scrollEvtCallback,
-      resizeEvtCallback: resizeEvtCallback,
-      Section: Section
+      top: top + this.addTop,
+      bottom: bottom + this.addBottom
     };
-  })(utils));
+  };
 
-  window.Scroller = Scroller;
-})((function() {
+  Section.prototype.getRelativePos = function() {
+    var top = this.el.offsetTop;
+    var bottom = top + this.el.offsetHeight;
+
+    return {
+      top: top + this.addTop,
+      bottom: bottom + this.addBottom
+    }
+  };
+
+  Section.prototype.getElementOffsetTopBottom = function () {
+    if(this.parent === 'absolute') {
+      console.log('absolute');
+      return this.getAbsolutePos();
+    } else {
+      console.log('relative');
+      return this.getRelativePos();
+    }
+  }
+
   var getType = function(data) {
     
     return Object.prototype.toString.call(data).slice(8, -1).toLowerCase();
@@ -214,10 +199,5 @@
     });
   };
 
-  return {
-    extend: extend,
-    getType: getType,
-    debounce: debounce,
-    bindEvts: bindEvts
-  };
-})());
+  window.Scroller = Scroller
+})();
