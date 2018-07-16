@@ -49,13 +49,8 @@
   };
 
   Scroller.prototype._activeResizeEvt = function() {
-    
-    this.sections.forEach(function(sectionInfo) {
-      
-      var offsetInfo = sectionInfo.getElementOffsetTopBottom();
-      
-      sectionInfo.top = offsetInfo.top;
-      sectionInfo.bottom = offsetInfo.bottom;
+    this.sections.forEach(function(section) {      
+      section.updateOffset();
     });
   };
 
@@ -84,42 +79,30 @@
     this.parent = parent;
     this.isActive = false;
 
-    var offsetInfo = this.getElementOffsetTopBottom();
-    this.top = offsetInfo.top;
-    this.bottom = offsetInfo.bottom;
+    this.updateOffset();
   };
 
-  Section.prototype.getAbsolutePos = function() {
+  Section.prototype._getAbsolutePos = function() {
     
     var domRect = this.el.getBoundingClientRect();
     
     var top = domRect.top + window.pageYOffset - document.documentElement.clientTop;
     var bottom = top + this.el.offsetHeight;
 
-    return {
-      top: top + this.addTop,
-      bottom: bottom + this.addBottom
-    };
+    return {top: top, bottom: bottom};
   };
 
-  Section.prototype.getRelativePos = function() {
+  Section.prototype._getRelativePos = function() {
     var top = this.el.offsetTop;
     var bottom = top + this.el.offsetHeight;
 
-    return {
-      top: top + this.addTop,
-      bottom: bottom + this.addBottom
-    }
+    return {top: top, bottom: bottom};
   };
 
-  Section.prototype.getElementOffsetTopBottom = function () {
-    if(this.parent === 'absolute') {
-      console.log('absolute');
-      return this.getAbsolutePos();
-    } else {
-      console.log('relative');
-      return this.getRelativePos();
-    }
+  Section.prototype.updateOffset = function () {
+    var pos = this.parent === 'absolute'? this._getAbsolutePos() :  this._getRelativePos();
+    this.top = pos.top + this.addTop
+    this.bottom = pos.bottom + this.addBottom
   }
 
   var noop = function () {  }
