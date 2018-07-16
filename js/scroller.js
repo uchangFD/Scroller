@@ -27,13 +27,12 @@
         sectionInfos: []
       };
 
-      this.add = function(obj) {
-        // 5번
-        this.states.sectionInfos.push(modules.getSectionState(obj));
-        return this;
-      };
-
       init.call(this);
+    };
+
+    Scroller.prototype.add = function(obj) {
+      this.states.sectionInfos.push(modules.getSectionState(obj));
+      return this;
     };
 
   return Scroller;
