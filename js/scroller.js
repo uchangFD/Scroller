@@ -1,203 +1,107 @@
-'use strict';
-;(function(utils) {
-  
-  var Scroller = (function(modules) {
-  
+;(function() {  
+  'use strict';
 
-    var init = function() {
+  var Scroller = function() {
+    this.sections = [];
 
-      var Scroller = this;
+    this._scrollEvtCallback = this._scrollEvtCallback.bind(this);
+    this._resizeEvtCallback = this._resizeEvtCallback.bind(this);
+    this._onScroll = this._onScroll.bind(this);
+    this._onResize = this._onResize.bind(this);
 
-      utils.bindEvts.call(Scroller,
-        {
-          event: 'scroll',
-          callback: modules.scrollEvtCallback
-        },
-        {
-          event: 'resize',
-          callback: modules.resizeEvtCallback
-        }
-      );
-    };
+    this._init();
+  };
 
-    var Scroller = function(opts) {
-
-      this.states = {
-        isActive: false,
-        sectionInfos: []
-      };
-
-      this.add = function(obj) {
-        // 5번
-        this.states.sectionInfos.push(modules.getSectionState(obj));
-        return this;
-      };
-
-      init.call(this);
-    };
-
-  return Scroller;
-
-  })((function(utils) {
-
-    var getAbsolutePos = function(sectionInfo) {
-      
-      var domRect = sectionInfo.el.getBoundingClientRect();
-      
-      var top = domRect.top + window.pageYOffset - document.documentElement.clientTop;
-      var bottom = top + sectionInfo.el.offsetHeight;
-
-      return {
-        top: top + sectionInfo.addTop,
-        bottom: bottom + sectionInfo.addBottom
-      };
-    };
-
-    var getRelativePos = function(sectionInfo) {
-      var top = sectionInfo.el.offsetTop;
-      var bottom = top + sectionInfo.el.offsetHeight;
-
-      return {
-        top: top + sectionInfo.addTop,
-        bottom: bottom + sectionInfo.addBottom
+  Scroller.prototype._init = function () {
+    bindEvts(
+      {
+        event: 'scroll',
+        callback: this._scrollEvtCallback
+      },
+      {
+        event: 'resize',
+        callback: this._resizeEvtCallback
       }
-    };
+    );
+  }
 
-    var getElementOffsetTopBottom = function(sectionInfo) {
+  Scroller.prototype.add = function(obj) {
+    this.sections.push(new Section(obj));
+    return this;
+  };
 
-      if(sectionInfo.parent === 'absolute') {
-        console.log('absolute');
-        return getAbsolutePos({el: sectionInfo.el, addTop: sectionInfo.addTop || 0, addBottom: sectionInfo.addBottom || 0});
-      } else {
-        console.log('relative');
-        return getRelativePos({el: sectionInfo.el, addTop: sectionInfo.addTop || 0, addBottom: sectionInfo.addBottom || 0});
-      }
-    };
+  Scroller.prototype._onScroll = function() {
+    this.sections.forEach(function(section) {
+      section.onScroll()
+    });
+  };
 
-    // 6번
-    var activeScrollEvt = function(sectionInfos, scrollY) {
-      
-      sectionInfos.forEach(function(info) {
-        
-        var top = info.top;
-        var bottom = info.bottom;
+  Scroller.prototype._onResize = function() {
+    this.sections.forEach(function(section) {      
+      section.updateOffset();
+    });
+  };
 
-        if(scrollY > top && scrollY < bottom) {
-          !info.isActive && info.start();
-          info.isActive = true;
-        } else {
-          info.isActive && info.end();
-          info.isActive = false;
-        }
-      });
-    };
+  Scroller.prototype._scrollEvtCallback = function() {
+    if(this.sections.length > 0) nextFrame(this._onScroll);
+  };
 
-    var activeResizeEvt = function(sectionInfos) {
-      
-      sectionInfos.forEach(function(sectionInfo) {
-        
-        var offsetInfo = getElementOffsetTopBottom(sectionInfo);
-        
-        sectionInfo.top = offsetInfo.top;
-        sectionInfo.bottom = offsetInfo.bottom;
-      });
-    };
-
-    var scrollEvtCallback = function(sectionInfos) {
-      
-      sectionInfos.length > 0 && utils.debounce(activeScrollEvt.bind(null, sectionInfos, window.pageYOffset || document.documentElement.scrollY));
-    };
-
-    var resizeEvtCallback = function(sectionInfos) {
-
-      if(!sectionInfos.length > 0) { return; }
-    
-      utils.debounce(activeResizeEvt.bind(null, sectionInfos));
-    };
+  Scroller.prototype._resizeEvtCallback = function() {
+    if(!this.sections.length > 0) nextFrame(this._onResize);
+  };
 
     // 4번
-    var getSectionState = function(sectionInfo) {
-        
-      if(!sectionInfo) {
-        return;
-      }
+  var Section = function(sectionInfo) {
+    if(!sectionInfo) throw new TypeError('sectionInfo가 필요합니다!')
 
-      var newInfo = {};
-      var el = document.querySelector(sectionInfo.el);
-      var parent = utils.getType(sectionInfo.parent) === 'string' && sectionInfo.parent === 'relative' ? 'relative' : 'absolute';
-      var offsetInfo;
+    var el = this.el = document.querySelector(sectionInfo.el);
+    this._parentPosition = window.getComputedStyle(el.offsetParent).position;
+    this.addTop = sectionInfo.addTop || 0;
+    this.addBottom = sectionInfo.addBottom || 0;
+    this.start = sectionInfo.start || noop;
+    this.end = sectionInfo.end || noop;
+    this.isActive = false;
 
-      newInfo['el'] = el;
-      newInfo['addTop'] = sectionInfo.addTop || 0;
-      newInfo['addBottom'] = sectionInfo.addBottom || 0;
-      newInfo['start'] = sectionInfo.start ? sectionInfo.start : function() {};
-      newInfo['end'] = sectionInfo.end ? sectionInfo.end : function() {};
-      newInfo['parent'] = parent;
-      newInfo['isActive'] = false;
-
-      offsetInfo = getElementOffsetTopBottom(newInfo);
-      
-      newInfo['top'] = offsetInfo.top;
-      newInfo['bottom'] = offsetInfo.bottom;
-
-      return newInfo;
-    };
-
-    return {
-      getElementOffsetTopBottom: getElementOffsetTopBottom,
-      scrollEvtCallback: scrollEvtCallback,
-      resizeEvtCallback: resizeEvtCallback,
-      getSectionState: getSectionState
-    };
-  })(utils));
-
-  window.Scroller = Scroller;
-})((function() {
-  var getType = function(data) {
-    
-    return Object.prototype.toString.call(data).slice(8, -1).toLowerCase();
+    this.updateOffset();
   };
 
-  var extend = function(newObj, oldObj) {
-    
-    var checkArr = function(arr) {
+  Section.prototype.onScroll = function () {
+    var scrollY = window.pageYOffset || document.documentElement.scrollY
 
-      var emptyArr = [];
-
-      arr.forEach(function(data) {
-        var dataType = getType(data);
-
-        if(dataType === 'object') {
-          emptyArr.push(extend({}, data));
-        } else if(dataType === 'array') {
-          emptyArr.push(checkArr(data));
-        } else {
-          emptyArr.push(data);
-        }
-      });
-
-      return emptyArr;
-    };
-
-    for(var prop in oldObj) {
-      if(oldObj.hasOwnProperty(prop)) {
-        var _data = oldObj[prop];
-        var type = getType(_data);
-
-        if(type === 'object') {
-          newObj[prop] = extend({}, _data);
-        } else if(type === 'array') {
-          newObj[prop] = checkArr(_data);
-        } else {
-          newObj[prop] = _data;
-        }
-      }
+    if(scrollY > this.top && scrollY < this.bottom) {
+      !this.isActive && this.start();
+      this.isActive = true;
+    } else {
+      this.isActive && this.end();
+      this.isActive = false;
     }
+  }
 
-    return newObj;
+  Section.prototype._getAbsolutePos = function() {
+    var domRect = this.el.getBoundingClientRect();
+    
+    var top = domRect.top + window.pageYOffset - document.documentElement.clientTop;
+    var bottom = top + this.el.offsetHeight;
+
+    return {top: top, bottom: bottom};
   };
 
-  var debounce = function(callback) {
+  Section.prototype._getRelativePos = function() {
+    var top = this.el.offsetTop;
+    var bottom = top + this.el.offsetHeight;
+
+    return {top: top, bottom: bottom};
+  };
+
+  Section.prototype.updateOffset = function () {
+    var pos = this._parentPosition === 'absolute'? this._getAbsolutePos() :  this._getRelativePos();
+    this.top = pos.top + this.addTop
+    this.bottom = pos.bottom + this.addBottom
+  }
+
+  function noop () {  }
+
+  function nextFrame(callback) {
     if(window.requestAnimationFrame) {
       window.requestAnimationFrame(callback);
     } else {
@@ -205,32 +109,21 @@
     }
   };
 
-  var bindEvts = function() {
-        
-    if(!arguments.length > 0) {
+  function bindEvts() {
+    var args = [].slice.call(arguments)     
+       
+    if(args.length === 0) {
       return;
     }
     
-    var my = this;
-
-    Array.prototype.forEach.call(arguments, function(eventInfo) {
+    args.forEach(function(eventInfo) {
       var evt = eventInfo.event;
       var callback = eventInfo.callback;
       var target = eventInfo.target || window;
-
-      if(target.addEventListener) {
-        target.addEventListener(evt, callback.bind(null, my.states.sectionInfos));
-      } else {
-        target.attachEvent('on' + evt, callback.bind(null, my.states.sectionInfos));
-      }
       
+      target.addEventListener(evt, callback);
     });
   };
 
-  return {
-    extend: extend,
-    getType: getType,
-    debounce: debounce,
-    bindEvts: bindEvts
-  };
-})());
+  window.Scroller = Scroller
+})();
